@@ -19,12 +19,24 @@ class Dplay(object):
           #~ if menu['Url'] == None:
             #~ self._addItem(menu['Label'], { 'at' : self._access_token, 'action' : 'm', 'value' : re.sub('\s+', '', menu['Label']) }, fanart = fanart)
         #~ xbmcplugin.endOfDirectory(self._handle)
-        response = self._getResponseJson('http://dplayproxy.azurewebsites.net//api/Show/GetList')
-        for show in response.body:
-          self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, show['Description'])
+        response = self._getResponseJson('http://dplayproxy.azurewebsites.net/api/Channel/GetList')
+        self._addItem(nw.getTranslation(30015), { 'at' : self._access_token, 'action' : 'p' }, None, fanart)
+        for channel in response.body:
+          self._addItem(channel['Name'], { 'at' : self._access_token, 'action' : 'p', 'value' : channel['Id'] }, channel['Images'][0]['Src'], channel['Images'][2]['Src'])
         xbmcplugin.endOfDirectory(self._handle)
     else:
       self._access_token = self._params['at']
+
+      if self._params['action'] == 'p':
+        url = None
+        if 'value' in self._params:
+            url = 'http://dplayproxy.azurewebsites.net//api/show/GetList?channelsId={0}'.format(self._params['value'])
+        else:
+            url = 'http://dplayproxy.azurewebsites.net//api/Show/GetList'
+        response = self._getResponseJson(url)
+        for show in response.body:
+          self._addItem(show['Name'], { 'at' : self._access_token, 'action' : 's', 'value' : show['Id'] }, show['Images'][0]['Src'], fanart, show['Description'])
+        xbmcplugin.endOfDirectory(self._handle)
 
       if self._params['action'] == 's':
         response = self._getResponseJson('http://dplayproxy.azurewebsites.net/api/Show/GetById/?id={0}'.format(self._params['value']))
